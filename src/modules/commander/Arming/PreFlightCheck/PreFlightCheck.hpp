@@ -114,4 +114,5 @@ private:
 					 const bool prearm);
 	static bool check_calibration(const char *param_template, const int32_t device_id);
 	static bool manualControlCheck(orb_advert_t *mavlink_log_pub, const bool report_fail);
+	static bool cpuResourceCheck(orb_advert_t *mavlink_log_pub, const bool report_fail);
 };

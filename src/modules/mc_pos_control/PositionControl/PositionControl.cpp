@@ -42,6 +42,8 @@
 #include <px4_platform_common/defines.h>
 #include <ecl/geo/geo.h>
 
+
+
 using namespace matrix;
 
 void PositionControl::setVelocityGains(const Vector3f &P, const Vector3f &I, const Vector3f &D)
@@ -240,8 +242,10 @@ void PositionControl::getLocalPositionSetpoint(vehicle_local_position_setpoint_s
 	_thr_sp.copyTo(local_position_setpoint.thrust);
 }
 
-void PositionControl::getAttitudeSetpoint(vehicle_attitude_setpoint_s &attitude_setpoint) const
+void PositionControl::getAttitudeSetpoint(vehicle_attitude_setpoint_s &attitude_setpoint, float c_yaw, const bool cart) const
 {
-	ControlMath::thrustToAttitude(_thr_sp, _yaw_sp, attitude_setpoint);
+
+
+        ControlMath::thrustToAttitude(_thr_sp, _yaw_sp, attitude_setpoint, c_yaw, cart);
 	attitude_setpoint.yaw_sp_move_rate = _yawspeed_sp;
 }

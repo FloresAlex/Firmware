@@ -44,9 +44,9 @@ using namespace matrix;
 
 namespace ControlMath
 {
-void thrustToAttitude(const Vector3f &thr_sp, const float yaw_sp, vehicle_attitude_setpoint_s &att_sp)
+void thrustToAttitude(const Vector3f &thr_sp, const float yaw_sp, vehicle_attitude_setpoint_s &att_sp, const float c_yaw, const bool cart)
 {
-	bodyzToAttitude(-thr_sp, yaw_sp, att_sp);
+        bodyzToAttitude(-thr_sp, yaw_sp, att_sp, c_yaw,cart);
 	att_sp.thrust_body[2] = -thr_sp.length();
 }
 
@@ -67,12 +67,21 @@ void limitTilt(Vector3f &body_unit, const Vector3f &world_unit, const float max_
 	body_unit = cosf(angle) * world_unit + sinf(angle) * rejection.unit();
 }
 
-void bodyzToAttitude(Vector3f body_z, const float yaw_sp, vehicle_attitude_setpoint_s &att_sp)
+void bodyzToAttitude(Vector3f body_z, const float yaw_sp, vehicle_attitude_setpoint_s &att_sp, const float c_yaw, const bool cart)
 {
 	// zero vector, no direction, set safe level value
 	if (body_z.norm_squared() < FLT_EPSILON) {
 		body_z(2) = 1.f;
 	}
+
+
+
+
+    if (cart){
+        Vector3f bod = body_z;
+        body_z(0) = cosf(c_yaw + yaw_sp)*bod(0) + sinf(c_yaw + yaw_sp)*bod(1);
+        body_z(1) = -sinf(c_yaw + yaw_sp)*bod(0) + cosf(c_yaw + yaw_sp)*bod(1);
+    }
 
 	body_z.normalize();
 

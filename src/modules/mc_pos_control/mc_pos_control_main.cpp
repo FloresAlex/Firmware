@@ -69,6 +69,15 @@
 #include <uORB/topics/vehicle_trajectory_waypoint.h>
 #include <uORB/topics/hover_thrust_estimate.h>
 
+
+#include <drivers/drv_hrt.h>
+#include <uORB/uORB.h>
+#include <uORB/topics/debug_key_value.h>
+#include <uORB/topics/debug_value.h>
+#include <uORB/topics/debug_vect.h>
+#include <uORB/topics/debug_array.h>
+#include <uORB/topics/manual_control_setpoint.h>
+
 #include "PositionControl/PositionControl.hpp"
 #include "Takeoff/Takeoff.hpp"
 
@@ -691,7 +700,32 @@ MulticopterPositionControl::Run()
 
 			vehicle_attitude_setpoint_s attitude_setpoint{};
 			attitude_setpoint.timestamp = time_stamp_now;
-			_control.getAttitudeSetpoint(attitude_setpoint);
+
+                        uORB::SubscriptionData<manual_control_setpoint_s> manual_control_setpoint_sub{ORB_ID(manual_control_setpoint)};
+                                                    manual_control_setpoint_sub.update();
+                                                    const manual_control_setpoint_s &manual_control_setpoint = manual_control_setpoint_sub.get();
+
+/*
+                        bool cart = false;
+                        if (manual_control_setpoint.aux2 > 0.f){
+                            cart = true;
+                        }
+*/
+                        const float c_yaw = manual_control_setpoint.aux1 * 3.1416f/2.f;
+
+                        _control.getAttitudeSetpoint(attitude_setpoint, c_yaw , true);
+
+
+
+                        struct debug_vect_s dbg_vect;
+                               strncpy(dbg_vect.name, "vec", 10);
+                               dbg_vect.x = c_yaw;
+                               dbg_vect.y = 0.f;
+                               dbg_vect.z = 0.f;
+                               orb_advert_t pub_dbg_vect = orb_advertise(ORB_ID(debug_vect), &dbg_vect);
+                               uint64_t timestamp_us = hrt_absolute_time();
+                               dbg_vect.timestamp = timestamp_us;
+                               orb_publish(ORB_ID(debug_vect), pub_dbg_vect, &dbg_vect);
 
 			// publish attitude setpoint
 			// It's important to publish also when disarmed otheriwse the attitude setpoint stays uninitialized.
